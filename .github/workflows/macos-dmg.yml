@@ -7,7 +7,18 @@ on:
 
 jobs:
   build-dmg:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            arch: x86_64
+            deployment_target: '10.13'
+          - os: macos-14
+            arch: arm64
+            deployment_target: '11.0'
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -25,8 +36,22 @@ jobs:
           python -m pip install pyinstaller
 
       - name: Build .app with PyInstaller
+        env:
+          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
         run: |
-          pyinstaller --noconfirm --clean --windowed --name Snakee --add-data "assets:assets" app.py
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            arch -arm64 python -m PyInstaller --noconfirm --clean --windowed --name Snakee --add-data "assets:assets" app.py
+          else
+            arch -x86_64 python -m PyInstaller --noconfirm --clean --windowed --name Snakee --add-data "assets:assets" app.py
+          fi
+
+      - name: Verify built app architecture
+        run: |
+          if command -v lipo >/dev/null 2>&1; then
+            lipo -archs "dist/Snakee.app/Contents/MacOS/Snakee"
+          else
+            file "dist/Snakee.app/Contents/MacOS/Snakee"
+          fi
 
       - name: Create DMG
         run: |
@@ -35,10 +60,10 @@ jobs:
           mkdir -p dmg
           cp -R "dist/Snakee.app" "dmg/Snakee.app"
           ln -s /Applications "dmg/Applications"
-          hdiutil create -volname "Snakee" -srcfolder dmg -ov -format UDZO "Snakee.dmg"
+          hdiutil create -volname "Snakee" -srcfolder dmg -ov -format UDZO "Snakee-${{ matrix.arch }}.dmg"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Snakee-macos-dmg
-          path: Snakee.dmg
+          name: Snakee-macos-dmg-${{ matrix.arch }}
+          path: Snakee-${{ matrix.arch }}.dmg
