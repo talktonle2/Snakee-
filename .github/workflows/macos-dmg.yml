@@ -11,13 +11,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-13
+          - os: macos-15-intel
             arch: x86_64
-            deployment_target: '10.13'
+            deployment_target: '10.15'
           - os: macos-14
             arch: arm64
             deployment_target: '11.0'
-          - os: macos-14
+          - os: macos-15-intel
             arch: universal2
             deployment_target: '11.0'
 
@@ -31,6 +31,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          architecture: ${{ (matrix.arch == 'arm64' && 'arm64') || 'x64' }}
 
       - name: Install dependencies
         run: |
