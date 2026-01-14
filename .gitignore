@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# PyInstaller
+build/
+dist/
+build_new/
+dist_new/
+*.exe
+
+# Local data
+*.db
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
