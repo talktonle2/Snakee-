@@ -17,6 +17,9 @@ jobs:
           - os: macos-14
             arch: arm64
             deployment_target: '11.0'
+          - os: macos-14
+            arch: universal2
+            deployment_target: '11.0'
 
     runs-on: ${{ matrix.os }}
 
@@ -39,7 +42,9 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.deployment_target }}
         run: |
-          if [ "${{ matrix.arch }}" = "arm64" ]; then
+          if [ "${{ matrix.arch }}" = "universal2" ]; then
+            python -m PyInstaller --noconfirm --clean --windowed --name Snakee --add-data "assets:assets" --target-arch universal2 app.py
+          elif [ "${{ matrix.arch }}" = "arm64" ]; then
             arch -arm64 python -m PyInstaller --noconfirm --clean --windowed --name Snakee --add-data "assets:assets" app.py
           else
             arch -x86_64 python -m PyInstaller --noconfirm --clean --windowed --name Snakee --add-data "assets:assets" app.py
